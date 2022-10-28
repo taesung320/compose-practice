@@ -1,175 +1,215 @@
-import React, { useEffect, useState } from "react";
-import logo from "./logo.svg";
+import React, { Fragment, useEffect, useState } from "react";
+
 import "./App.css";
-import CRUDTable,
-{
-  Fields,
-  Field,
-  CreateForm,
-  UpdateForm,
-  DeleteForm,
-} from 'react-crud-table';
-import axios from 'axios';
 
-// Component's Base CSS
-import './index.css';
+import { styled } from '@mui/material/styles';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell, { tableCellClasses } from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import Paper from '@mui/material/Paper';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
+import axios from "axios";
 
-const DescriptionRenderer = ({ field }) => <textarea {...field} />;
+function FormDialog({onSubmit}) {
+  const [open, setOpen] = React.useState(false);
+  const [title, setTitle] = React.useState('');
+  const [description, setDescription] = React.useState('');
+  const handleTitle = (event) => {
+    setTitle(event.target.value);
+  };
+  const handleDescription = (event) => {
+    setDescription(event.target.value);
+  };
 
-let tasks = [
-  {
-    id: 1,
-    title: 'Create an example',
-    description: 'Create an example of how to use the component',
-  },
-  {
-    id: 2,
-    title: 'Improve',
-    description: 'Improve the component!',
-  },
-];
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
 
-const SORTERS = {
-  NUMBER_ASCENDING: mapper => (a, b) => mapper(a) - mapper(b),
-  NUMBER_DESCENDING: mapper => (a, b) => mapper(b) - mapper(a),
-  STRING_ASCENDING: mapper => (a, b) => mapper(a).localeCompare(mapper(b)),
-  STRING_DESCENDING: mapper => (a, b) => mapper(b).localeCompare(mapper(a)),
-};
+  const handleClose = () => {
+    setOpen(false);
+  };
 
-const getSorter = (data) => {
-  const mapper = x => x[data.field];
-  let sorter = SORTERS.STRING_ASCENDING(mapper);
-
-  if (data.field === 'id') {
-    sorter = data.direction === 'ascending' ?
-      SORTERS.NUMBER_ASCENDING(mapper) : SORTERS.NUMBER_DESCENDING(mapper);
-  } else {
-    sorter = data.direction === 'ascending' ?
-      SORTERS.STRING_ASCENDING(mapper) : SORTERS.STRING_DESCENDING(mapper);
-  }
-
-  return sorter;
-};
-
-
-let count = tasks.length;
-const backendUrl="http://backend:8080";
-function axiosGet(postfix){
-  return axios.get(`${backendUrl}${postfix}`).resolve()
-}
-function axiosPost(postfix,body){
-  return axios.post(`${backendUrl}${postfix}`,body)
-}
-//여기서 api 호출하면됨
-const service = {
-  fetchItems: (payload) => {
-    let result = Array.from(tasks);
-    result = result.sort(getSorter(payload.sort));
-    return Promise.resolve(result);
-  },
-  create: (task) => {
-    count += 1;
-    tasks.push({
-      ...task,
-      id: count,
-    });
-    return Promise.resolve(task);
-  },
-  update: (data) => {
-    const task = tasks.find(t => t.id === data.id);
-    task.title = data.title;
-    task.description = data.description;
-    return Promise.resolve(task);
-  },
-  delete: (data) => {
-    const task = tasks.find(t => t.id === data.id);
-    tasks = tasks.filter(t => t.id !== task.id);
-    return Promise.resolve(task);
-  },
-};
-
-const styles = {
-  container: { margin: 'auto', width: 'fit-content' },
-};
-
-function App() {
-  const [title,setTitle]=useState("aaa");
-  useEffect(()=>{
-
-  })
-  function onSearch(){
-    console.log(title);
-    axios.get("/").then((response)=>{
-      console.log("succ");
-    }).catch((errors)=>{
-      console.log("fail",errors);
-    })
-  } 
   return (
-    <div style={styles.container}>
-      <CRUDTable
-        caption="Tasks"
-        update="false"
-        fetchItems={payload => service.fetchItems(payload)}
-      >
-        <Fields>
-          <Field
-            name="id"
-            label="Id"
-            hideInCreateForm
-            readOnly
+    <div>
+      <Button variant="outlined" onClick={handleClickOpen}>
+        Open form dialog
+      </Button>
+      <Dialog open={open} onClose={handleClose}>
+        <DialogTitle>Subscribe</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            id="title"
+            label="title"
+            type="text"
+            fullWidth
+            variant="standard"
+            value={title}
+            onChange={handleTitle}
           />
-          <Field
-            name="title"
-            label="Title"
-            placeholder="Title"
+          <TextField
+            autoFocus
+            margin="dense"
+            id="description"
+            label="description"
+            type="text"
+            fullWidth
+            variant="standard"
+            value={description}
+            onChange={handleDescription}
           />
-          <Field
-            name="description"
-            label="Description"
-            render={DescriptionRenderer}
-          />
-        </Fields>
-        <CreateForm
-          title="Task Creation"
-          message="Create a new task!"
-          trigger="Create Task"
-          onSubmit={task => service.create(task)}
-          submitText="Create"
-          validate={(values) => {
-            const errors = {};
-            if (!values.title) {
-              errors.title = 'Please, provide task\'s title';
-            }
-
-            if (!values.description) {
-              errors.description = 'Please, provide task\'s description';
-            }
-
-            return errors;
-          }}
-        />
-
-        <DeleteForm
-          title="Task Delete Process"
-          message="Are you sure you want to delete the task?"
-          trigger="Delete"
-          onSubmit={task => service.delete(task)}
-          submitText="Delete"
-          validate={(values) => {
-            const errors = {};
-            if (!values.id) {
-              errors.id = 'Please, provide id';
-            }
-            return errors;
-          }}
-        />
-      </CRUDTable>
-      <input type="text" placeholder="search title" value={title} onChange={setTitle} />
-      <button onClick={onSearch}>검색</button>
+          
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose}>Cancel</Button>
+          <Button onClick={()=>{
+            handleClose();
+            onSubmit({title: title,description: description});
+          }}>submit</Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }
+const StyledTableCell = styled(TableCell)(({ theme }) => ({
+  [`&.${tableCellClasses.head}`]: {
+    backgroundColor: theme.palette.common.black,
+    color: theme.palette.common.white,
+  },
+  [`&.${tableCellClasses.body}`]: {
+    fontSize: 14,
+  },
+}));
+
+const StyledTableRow = styled(TableRow)(({ theme }) => ({
+  '&:nth-of-type(odd)': {
+    backgroundColor: theme.palette.action.hover,
+  },
+  // hide last border
+  '&:last-child td, &:last-child th': {
+    border: 0,
+  },
+}));
+
+function App() {
+  const columns=[
+    {
+      name:"id"
+    },
+    {
+      name:"title"
+    },
+    {
+      name:"description"
+    },
+    {
+      name:"delete"
+    }
+  ];
+  const [products,setProducts]=useState([
+      {
+        id:1,
+        title:"a",
+        description:"a-a"
+      },
+      {
+        id:2,
+        title:"b",
+        description:"a-a"
+      },
+      {
+        id:3,
+        title:"c",
+        description:"a-a"
+      },
+      {
+        id:4,
+        title:"d",
+        description:"a-a"
+      },
+  ]);
+  function fetchData(){
+    axios.get("/products").then((res)=>{
+      setProducts(res.data.products);
+    }).catch((err)=>{
+      console.log(err);
+    })
+  }
+
+  function createData(data){
+    axios.post("/products",data).then((res)=>{
+      console.log(res);
+      fetchData();
+    }).catch((err)=>{
+      console.log(err);
+    })
+  }
+
+  function deleteRow(data){
+    axios.delete(`/products/${data.id}`).then((res)=>{
+      console.log(res);
+      fetchData();
+    }).catch((err)=>{
+      console.log(err);
+    })
+  }
+
+  useEffect(()=>{
+    console.log("a");
+    fetchData();
+  },[])
+
+  function renderRows(rows){
+    return rows.map((row) => (
+      <StyledTableRow key={row.id}>
+        <StyledTableCell component="th" scope="row">
+          {row.id}
+        </StyledTableCell>
+        <StyledTableCell align="center">{row.title}</StyledTableCell>
+        <StyledTableCell align="center">{row.description}</StyledTableCell>
+        <StyledTableCell align="center">
+          <Button variant="outlined" onClick={()=>{deleteRow(row)}}>Delete</Button> 
+        </StyledTableCell>
+        
+      </StyledTableRow>
+    ))
+  }
+  function renderColumns(columns){
+    return columns.map((item)=>(
+      <StyledTableCell>{item.title}</StyledTableCell>
+    ))
+  }
+  function cb(data){
+    console.log(data);
+  }
+  return (<>
+    <TableContainer component={Paper}>
+      <Table sx={{ minWidth: 500 }} aria-label="customized table">
+        <TableHead>
+          <TableRow>
+            {renderColumns(columns)}
+          </TableRow>
+        </TableHead>
+        <TableBody>
+            {renderRows(products)}
+        </TableBody>
+      </Table>
+    </TableContainer>
+    <FormDialog onSubmit={createData}/>
+    </>
+  );
+}
+
 
 
 
