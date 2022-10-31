@@ -15,7 +15,6 @@ import TextField from '@mui/material/TextField';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import axios from "axios";
 
@@ -41,10 +40,10 @@ function FormDialog({onSubmit}) {
   return (
     <div>
       <Button variant="outlined" onClick={handleClickOpen}>
-        Open form dialog
+        create product
       </Button>
       <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>Subscribe</DialogTitle>
+        <DialogTitle>create product</DialogTitle>
         <DialogContent>
           <TextField
             autoFocus
@@ -139,7 +138,7 @@ function App() {
       },
   ]);
   function fetchData(){
-    axios.get("/products").then((res)=>{
+    axios.get("/api/products").then((res)=>{
       setProducts(res.data.products);
     }).catch((err)=>{
       console.log(err);
@@ -147,7 +146,7 @@ function App() {
   }
 
   function createData(data){
-    axios.post("/products",data).then((res)=>{
+    axios.post("/api/products",data).then((res)=>{
       console.log(res);
       fetchData();
     }).catch((err)=>{
@@ -156,7 +155,7 @@ function App() {
   }
 
   function deleteRow(data){
-    axios.delete(`/products/${data.id}`).then((res)=>{
+    axios.delete(`/api/products/${data.id}`).then((res)=>{
       console.log(res);
       fetchData();
     }).catch((err)=>{
@@ -189,9 +188,7 @@ function App() {
       <StyledTableCell>{item.title}</StyledTableCell>
     ))
   }
-  function cb(data){
-    console.log(data);
-  }
+
   return (<>
     <TableContainer component={Paper}>
       <Table sx={{ minWidth: 500 }} aria-label="customized table">

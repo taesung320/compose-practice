@@ -1,0 +1,70 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: $APP_NAMESPACE
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: $APP
+  name: $APP
+  namespace: $APP_NAMESPACE
+spec:
+  replicas: $REPLICAS
+  selector:
+    matchLabels:
+      app: $APP
+  template:
+    metadata:
+      labels:
+        app: $APP
+    spec:
+      containers:
+        - image: $APP_IMAGE
+          imagePullPolicy: Always
+          name: $APP-container
+          env:
+            - name: BACKEND_URL
+              value: ${BACKEND_URL}       
+          ports:
+            - containerPort: 80
+              protocol: TCP
+#TODO : pv attach , other option
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: $APP
+  name: $APP
+  namespace: $APP_NAMESPACE
+spec:
+  ports:
+    - port: 80 #서비스가 듣는 포트
+      protocol: TCP
+      targetPort: 80 #컨테이너가 듣는 포트
+  selector:
+    app: $APP
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  namespace: $APP_NAMESPACE
+  name : $APP
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  rules:
+    - http:
+        paths:
+          - backend:
+              service:
+                name: $APP-svc
+                port:
+                  number: 80
+            path: /${APP_PATH}(/|$)(.*)
+            pathType: Prefix

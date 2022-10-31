@@ -38,8 +38,8 @@ services:
       start_period: 30s
     secrets:
       - db-password
-    volumes:
-      - db-data:/var/lib/mysql
+    # volumes:
+    #   - db-data:/var/lib/mysql
     networks:
       - spring-mysql
     
@@ -49,6 +49,8 @@ services:
       target: development
     ports:
       - 3000:3000
+    environment:
+      BACKEND_URL: http://backend:8080
     volumes:
       - ./frontend/src:/code/src
       - /project/node_modules
