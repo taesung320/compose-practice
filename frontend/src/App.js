@@ -137,8 +137,17 @@ function App() {
         description:"a-a"
       },
   ]);
+  function axiosGet(postfix){
+    return axios.get(`${process.env.PUBLIC_URL}/api${postfix}`);
+  }
+  function axiosPost(postfix,body){
+    return axios.post(`${process.env.PUBLIC_URL}/api${postfix}`,body);
+  }
+  function axiosDelete(postfix,pathParam){
+    return axios.delete(`${process.env.PUBLIC_URL}/api${postfix}/${pathParam}`);
+  }
   function fetchData(){
-    axios.get("/api/products").then((res)=>{
+    axiosGet("/products").then((res)=>{
       setProducts(res.data.products);
     }).catch((err)=>{
       console.log(err);
@@ -146,7 +155,7 @@ function App() {
   }
 
   function createData(data){
-    axios.post("/api/products",data).then((res)=>{
+    axiosPost("/products",data).then((res)=>{
       console.log(res);
       fetchData();
     }).catch((err)=>{
@@ -155,7 +164,7 @@ function App() {
   }
 
   function deleteRow(data){
-    axios.delete(`/api/products/${data.id}`).then((res)=>{
+    axiosDelete("/products",data.id).then((res)=>{
       console.log(res);
       fetchData();
     }).catch((err)=>{

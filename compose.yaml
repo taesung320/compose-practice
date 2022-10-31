@@ -51,9 +51,9 @@ services:
       - 3000:3000
     environment:
       BACKEND_URL: http://backend:8080
+    #  PUBLIC_URL: /test-fe
     volumes:
       - ./frontend/src:/code/src
-      - /project/node_modules
     networks:
       - react-spring
     depends_on:
